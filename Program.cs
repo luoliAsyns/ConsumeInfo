@@ -25,7 +25,7 @@ namespace ConsumeInfoService
         private static bool init()
         {
             bool result = false;
-            string configFolder = "/app/Coupon/configs";
+            string configFolder = "/app/ConsumeInfo/configs";
 
 #if DEBUG
             configFolder = "debugConfigs";
