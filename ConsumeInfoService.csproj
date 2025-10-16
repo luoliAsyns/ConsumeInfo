@@ -8,7 +8,7 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
     <AssemblyVersion>25</AssemblyVersion>
-    <FileVersion>10.16.4</FileVersion>
+    <FileVersion>10.16.5</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
