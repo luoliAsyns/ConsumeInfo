@@ -1,7 +1,16 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "E:\\Code\\repos\\AgenterBackend\\ConsumeInfoService\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{5F1A9359-E6FD-A664-3418-BD7A00CC595F}|ConsumeInfoService.csproj|e:\\code\\repos\\agenterbackend\\consumeinfoservice\\consumeinfoservice.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{5F1A9359-E6FD-A664-3418-BD7A00CC595F}|ConsumeInfoService.csproj|solutionrelative:consumeinfoservice.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5F1A9359-E6FD-A664-3418-BD7A00CC595F}|ConsumeInfoService.csproj|e:\\code\\repos\\agenterbackend\\consumeinfoservice\\consumeinfoservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{5F1A9359-E6FD-A664-3418-BD7A00CC595F}|ConsumeInfoService.csproj|solutionrelative:consumeinfoservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,11 +18,35 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ConsumeInfoService",
+              "DocumentMoniker": "E:\\Code\\repos\\AgenterBackend\\ConsumeInfoService\\ConsumeInfoService.csproj",
+              "RelativeDocumentMoniker": "ConsumeInfoService.csproj",
+              "ToolTip": "E:\\Code\\repos\\AgenterBackend\\ConsumeInfoService\\ConsumeInfoService.csproj",
+              "RelativeToolTip": "ConsumeInfoService.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-10-16T14:22:39.495Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ConsumeInfoService.csproj",
+              "DocumentMoniker": "E:\\Code\\repos\\AgenterBackend\\ConsumeInfoService\\ConsumeInfoService.csproj",
+              "RelativeDocumentMoniker": "ConsumeInfoService.csproj",
+              "ToolTip": "E:\\Code\\repos\\AgenterBackend\\ConsumeInfoService\\ConsumeInfoService.csproj",
+              "RelativeToolTip": "ConsumeInfoService.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-10-16T14:22:35.34Z"
             }
           ]
         }
