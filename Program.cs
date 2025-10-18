@@ -108,7 +108,7 @@ namespace ConsumeInfoService
                     .CreateClient("LokiHttpClient");
 
                 var dict = new Dictionary<string, string>();
-                dict["app"] = "CouponService";
+                dict["app"] = Config.ServiceName;
 
                 var loki = new LokiLogger(Config.KVPairs["LokiEndPoint"],
                     dict,
