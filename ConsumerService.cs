@@ -97,6 +97,12 @@ namespace CouponService
                         multiple: false,
                         requeue: false,
                         stoppingToken);
+
+                    ApiCaller.NotifyAsync(
+@$"{Program.Config.ServiceName}.{Program.Config.ServiceId}
+MQ 消费过程中异常
+
+message:[{message}]", Program.NotifyUsers);
                 }
             };
 

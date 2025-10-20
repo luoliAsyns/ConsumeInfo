@@ -55,6 +55,16 @@ namespace ConsumeInfoService.Controllers
         }
 
         [Time]
+        [Route("api/consume-info/query")]
+        [HttpGet]
+        public async Task<ApiResponse<ConsumeInfoDTO>> GetByCoupon([FromQuery] string goodsType, [FromQuery] string coupon)
+        {
+            var consumeInfo = await _service.GetAsync(goodsType, coupon);
+
+            return consumeInfo;
+        }
+
+        [Time]
         [HttpPost]
         [Route("api/consume-info/update")]
         public async Task<ApiResponse<bool>> Update([FromBody] LuoliCommon.DTO.ConsumeInfo.UpdateRequest ur)
