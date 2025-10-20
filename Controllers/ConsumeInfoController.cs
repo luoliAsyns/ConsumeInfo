@@ -45,7 +45,7 @@ namespace ConsumeInfoService.Controllers
 
 
         [Time]
-        [Route("api/consume-info/query")]
+        [Route("api/consume-info/query-id")]
         [HttpGet]
         public async Task<ApiResponse<ConsumeInfoDTO>> GetById([FromQuery] string goodsType, [FromQuery] long id)
         {
@@ -55,7 +55,7 @@ namespace ConsumeInfoService.Controllers
         }
 
         [Time]
-        [Route("api/consume-info/query")]
+        [Route("api/consume-info/query-coupon")]
         [HttpGet]
         public async Task<ApiResponse<ConsumeInfoDTO>> GetByCoupon([FromQuery] string goodsType, [FromQuery] string coupon)
         {
