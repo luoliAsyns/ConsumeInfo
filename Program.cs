@@ -1,5 +1,8 @@
 using CouponService;
 using LuoliCommon;
+using LuoliCommon.DTO.Coupon;
+using LuoliCommon.DTO.ExternalOrder;
+using LuoliCommon.Enums;
 using LuoliCommon.Logger;
 using LuoliHelper.Utils;
 using LuoliUtils;
@@ -9,6 +12,8 @@ using RabbitMQ.Client;
 using SqlSugar;
 using System.Reflection;
 using System.ServiceModel.Channels;
+using System.Text.Json;
+using ThirdApis;
 using IChannel = RabbitMQ.Client.IChannel;
 
 namespace ConsumeInfoService
@@ -16,11 +21,12 @@ namespace ConsumeInfoService
     public class Program
     {
         public static Config Config { get; set; }
-
         private static SqlSugarConnection MasterDB { get; set; }
         private static SqlSugarConnection SlaverDB { get; set; }
         private static RabbitMQConnection RabbitMQConnection { get; set; }
         private static RedisConnection RedisConnection { get; set; }
+
+        public static List<string> NotifyUsers;
 
         private static bool init()
         {
@@ -34,6 +40,11 @@ namespace ConsumeInfoService
             ActionsOperator.TryCatchAction(() =>
             {
                 Config = new Config($"{configFolder}/sys.json");
+
+                NotifyUsers = Config.KVPairs["NotifyUsers"].Split(',').Select(s => s.Trim())
+                    .Where(s => !String.IsNullOrEmpty(s)).ToList();
+
+
                 MasterDB = new SqlSugarConnection($"{configFolder}/master_db.json");
                 SlaverDB = new SqlSugarConnection($"{configFolder}/slaver_db.json");
                 RabbitMQConnection = new RabbitMQConnection($"{configFolder}/rabbitmq.json");
@@ -178,7 +189,6 @@ namespace ConsumeInfoService
                 return connection.CreateChannelAsync().Result;
             });
 
-            builder.Services.AddHostedService<ConsumerService>();
 
             #endregion
 
@@ -188,9 +198,24 @@ namespace ConsumeInfoService
 
             #endregion
 
+
+            builder.Services.AddScoped<AsynsApis>(prov =>
+            {
+                LuoliCommon.Logger.ILogger logger = prov.GetRequiredService<LuoliCommon.Logger.ILogger>();
+#if DEBUG
+                return new AsynsApis(logger, Config.KVPairs["AsynsApiUrl"]);
+#endif
+                return new AsynsApis(logger, string.Empty);
+            });
+            builder.Services.AddHostedService<ConsumerService>();
+
+
+
             var app = builder.Build();
 
             ServiceLocator.Initialize(app.Services);
+
+            ApiCaller.NotifyAsync($"{Config.ServiceName}.{Config.ServiceId} Æô¶¯ÁË", NotifyUsers);
 
             #region luoli code
 
@@ -229,6 +254,21 @@ namespace ConsumeInfoService
             app.MapControllers();
 
             app.Run(Config.BindAddr);
+        }
+
+
+        public static void Notify(CouponDTO coupon, ExternalOrderDTO externalOrder, string coreMsg)
+        {
+            ApiCaller.NotifyAsync(
+                @$"{Config.ServiceName}.{Config.ServiceId}
+{coreMsg}
+
+¿¨ÃÜ:{coupon.Coupon}
+¿¨ÃÜ×´Ì¬:{EnumHandler.GetDescription((ECouponStatus)coupon.Status)}
+¿¨ÃÜ½ð¶î:{coupon.AvailableBalance}
+¿¨ÃÜ°ó¶¨¶©µ¥:{coupon.ExternalOrderFromPlatform} - {coupon.ExternalOrderTid}
+¶©µ¥½ð¶î:{externalOrder.PayAmount}
+¶©µ¥ÄÚÈÝ:{JsonSerializer.Serialize(externalOrder.SubOrders)}", NotifyUsers);
         }
     }
 }

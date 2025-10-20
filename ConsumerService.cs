@@ -1,5 +1,6 @@
 ﻿using ConsumeInfoService;
 using LuoliCommon.DTO.ConsumeInfo;
+using LuoliCommon.DTO.Coupon;
 using LuoliCommon.DTO.ExternalOrder;
 using LuoliUtils;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using ThirdApis;
 
 namespace CouponService
@@ -17,14 +19,18 @@ namespace CouponService
         private readonly IServiceProvider _serviceProvider;
         private readonly string _queueName =RabbitMQKeys.ConsumeInfoInserting; // 替换为你的队列名
         private readonly LuoliCommon.Logger.ILogger _logger;
+        private readonly AsynsApis _asynsApis;
+
         public ConsumerService(IChannel channel,
              IServiceProvider serviceProvider,
-             LuoliCommon.Logger.ILogger logger
+             LuoliCommon.Logger.ILogger logger,
+             AsynsApis asynsApis
              )
         {
             _channel = channel;
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _asynsApis = asynsApis;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -74,12 +80,9 @@ namespace CouponService
                         }
                         else
                         {
-                            // 插入失败，不requeue
-                            await _channel.BasicNackAsync(
-                               deliveryTag: ea.DeliveryTag,
-                               multiple: false,
-                               requeue: false,
-                               stoppingToken);
+                            _logger.Error("while ConsumeInfo insert");
+                            _logger.Error(resp.msg);
+                            Notify(dto, $"ConsumeInfo insert failed, msg:[{resp.msg}]", ea.DeliveryTag, stoppingToken);
                         }
                     }
                 }
@@ -114,8 +117,38 @@ namespace CouponService
                 await Task.Delay(1000, stoppingToken);
             }
         }
+
+        /// <summary>
+        /// ConsumeFailed  统一处理
+        /// </summary>
+        /// <param name="coupon"></param>
+        /// <param name="externalOrder"></param>
+        /// <param name="coreMsg"></param>
+        private async Task Notify(ConsumeInfoDTO ci, string coreMsg, ulong tag, CancellationToken token)
+        {
+            try
+            {
+                CouponDTO coupon = (await _asynsApis.CouponQuery(ci.Coupon)).data;
+                ExternalOrderDTO externalOrder = (await _asynsApis.ExternalOrderQuery(coupon.ExternalOrderFromPlatform, coupon.ExternalOrderTid)).data;
+
+                _channel.BasicNackAsync(
+                          deliveryTag: tag,
+                          multiple: false,
+                          requeue: false,
+                          token);
+
+
+                Program.Notify(
+                    coupon,
+                    externalOrder,
+                    coreMsg);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("while Notify");
+                _logger.Error(ex.Message);
+            }
+        }
+
     }
-
-
-
 }
