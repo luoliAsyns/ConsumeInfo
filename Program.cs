@@ -30,7 +30,7 @@ namespace ConsumeInfoService
 
         private static bool init()
         {
-            Console.OutputEncoding = Encoding.UTF8;
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
             bool result = false;
             string configFolder = "/app/ConsumeInfo/configs";
 
