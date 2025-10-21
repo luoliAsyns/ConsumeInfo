@@ -5,6 +5,20 @@ ARG COMMON_REPO=https://github.com/luoliAsyns/Common.git
 
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
+# 1. 安装 locales 包（用于生成 UTF-8 编码）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    locales \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. 生成 zh_CN.UTF-8 编码（支持中文）
+RUN locale-gen zh_CN.UTF-8
+
+# 3. 设置容器内的默认编码为 UTF-8
+ENV LANG=zh_CN.UTF-8 \
+    LC_ALL=zh_CN.UTF-8 \
+    LANGUAGE=zh_CN.UTF-8
+
+    
 # 设置工作目录为项目根目录（Dockerfile所在目录）
 WORKDIR /src
 
