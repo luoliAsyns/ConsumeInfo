@@ -30,6 +30,7 @@ namespace ConsumeInfoService
 
         private static bool init()
         {
+            Console.OutputEncoding = Encoding.UTF8;
             bool result = false;
             string configFolder = "/app/ConsumeInfo/configs";
 
@@ -81,7 +82,7 @@ namespace ConsumeInfoService
 
             var builder = WebApplication.CreateBuilder(args);
 
-            // ÅäÖÃ Kestrel Ö§³Ö HTTP/2
+            // é…ç½® Kestrel æ”¯æŒ HTTP/2
             builder.WebHost.ConfigureKestrel(serverOptions =>
             {
                 int port = int.Parse(Config.KVPairs["BindPort"]);
@@ -98,7 +99,7 @@ namespace ConsumeInfoService
             builder.Services.AddEndpointsApiExplorer();
 
 
-            #region ×¢²á ILogger
+            #region æ³¨å†Œ ILogger
 
             builder.Services.AddHttpClient("LokiHttpClient")
                 .ConfigureHttpClient(client =>
@@ -106,13 +107,13 @@ namespace ConsumeInfoService
                     // client.DefaultRequestHeaders.Add("X-Custom-Header", "luoli-app");
                 });
 
-            // ¸øÄ¬ÈÏµÄLoggerÌí¼Ófilter
+            // ç»™é»˜è®¤çš„Loggeræ·»åŠ filter
             builder.Logging.AddFilter(
                 "System.Net.Http.HttpClient.LokiHttpClient",
                 LogLevel.Warning
             );
 
-            // Ìí¼Ó luoliµÄ ILogger   loki logger
+            // æ·»åŠ  luoliçš„ ILogger   loki logger
             builder.Services.AddSingleton<LuoliCommon.Logger.ILogger, LokiLogger>(provider =>
             {
                 var httpClient = provider.GetRequiredService<IHttpClientFactory>()
@@ -132,7 +133,7 @@ namespace ConsumeInfoService
 
             #endregion
 
-            #region ×¢²á sqlsugar
+            #region æ³¨å†Œ sqlsugar
 
             builder.Services.AddScoped<SqlSugarClient>(provider =>
             {
@@ -161,7 +162,7 @@ namespace ConsumeInfoService
 
             #endregion
 
-            #region ×¢²á rabbitmq
+            #region æ³¨å†Œ rabbitmq
 
             builder.Services.AddSingleton<RabbitMQ.Client.IConnectionFactory>(provider =>
             {
@@ -192,7 +193,7 @@ namespace ConsumeInfoService
 
             #endregion
 
-            #region ×¢²á ICouponService
+            #region æ³¨å†Œ ICouponService
 
             builder.Services.AddScoped<IConsumeInfoService, SqlSugarConsumeInfoService>();
 
@@ -215,22 +216,22 @@ namespace ConsumeInfoService
 
             ServiceLocator.Initialize(app.Services);
 
-            ApiCaller.NotifyAsync($"{Config.ServiceName}.{Config.ServiceId} Æô¶¯ÁË", NotifyUsers);
+            ApiCaller.NotifyAsync($"{Config.ServiceName}.{Config.ServiceId} å¯åŠ¨äº†", NotifyUsers);
 
             #region luoli code
 
-            // Ó¦ÓÃÆô¶¯ºó£¬Í¨¹ı·şÎñÈİÆ÷»ñÈ¡ LokiLogger ÊµÀı
+            // åº”ç”¨å¯åŠ¨åï¼Œé€šè¿‡æœåŠ¡å®¹å™¨è·å– LokiLogger å®ä¾‹
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
                 try
                 {
-                    // »ñÈ¡ LokiLogger ÊµÀı
+                    // è·å– LokiLogger å®ä¾‹
                     var lokiLogger = services.GetRequiredService<LuoliCommon.Logger.ILogger>();
 
-                    // ¼ÇÂ¼Æô¶¯ÈÕÖ¾
-                    lokiLogger.Info($"{Config.ServiceName}Æô¶¯³É¹¦");
-                    lokiLogger.Debug($"»·¾³:{app.Environment.EnvironmentName},¶Ë¿Ú£º{Config.BindAddr}");
+                    // è®°å½•å¯åŠ¨æ—¥å¿—
+                    lokiLogger.Info($"{Config.ServiceName}å¯åŠ¨æˆåŠŸ");
+                    lokiLogger.Debug($"ç¯å¢ƒ:{app.Environment.EnvironmentName},ç«¯å£ï¼š{Config.BindAddr}");
 
 
                     var assembly = Assembly.GetExecutingAssembly();
@@ -242,8 +243,8 @@ namespace ConsumeInfoService
                 }
                 catch (Exception ex)
                 {
-                    // Æô¶¯ÈÕÖ¾Ê§°ÜÊ±½µ¼¶Êä³ö
-                    Console.WriteLine($"Æô¶¯ÈÕÖ¾¼ÇÂ¼Ê§°Ü£º{ex.Message}");
+                    // å¯åŠ¨æ—¥å¿—å¤±è´¥æ—¶é™çº§è¾“å‡º
+                    Console.WriteLine($"å¯åŠ¨æ—¥å¿—è®°å½•å¤±è´¥ï¼š{ex.Message}");
                 }
             }
 
@@ -263,12 +264,12 @@ namespace ConsumeInfoService
                 @$"{Config.ServiceName}.{Config.ServiceId}
 {coreMsg}
 
-¿¨ÃÜ:{coupon.Coupon}
-¿¨ÃÜ×´Ì¬:{EnumHandler.GetDescription((ECouponStatus)coupon.Status)}
-¿¨ÃÜ½ğ¶î:{coupon.AvailableBalance}
-¿¨ÃÜ°ó¶¨¶©µ¥:{coupon.ExternalOrderFromPlatform} - {coupon.ExternalOrderTid}
-¶©µ¥½ğ¶î:{externalOrder.PayAmount}
-¶©µ¥ÄÚÈİ:{JsonSerializer.Serialize(externalOrder.SubOrders)}", NotifyUsers);
+å¡å¯†:{coupon.Coupon}
+å¡å¯†çŠ¶æ€:{EnumHandler.GetDescription((ECouponStatus)coupon.Status)}
+å¡å¯†é‡‘é¢:{coupon.AvailableBalance}
+å¡å¯†ç»‘å®šè®¢å•:{coupon.ExternalOrderFromPlatform} - {coupon.ExternalOrderTid}
+è®¢å•é‡‘é¢:{externalOrder.PayAmount}
+è®¢å•å†…å®¹:{JsonSerializer.Serialize(externalOrder.SubOrders)}", NotifyUsers);
         }
     }
 }
