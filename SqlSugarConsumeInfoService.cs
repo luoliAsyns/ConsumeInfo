@@ -216,10 +216,9 @@ namespace ConsumeInfoService
 
         public async Task<ApiResponse<bool>> InsertAsync(ConsumeInfoDTO info)
         {
-            long id = info.Id;
             string goodsType = info.GoodsType;
 
-            _logger.Debug($"starting SqlSugarConsumeInfoService.InsertAsync with id:[{id}] goodsType:[{goodsType}]");
+            _logger.Debug($"starting SqlSugarConsumeInfoService.InsertAsync with coupon:[{info.Coupon}] goodsType:[{goodsType}]");
 
 
             var result = new ApiResponse<bool>();
@@ -237,14 +236,20 @@ namespace ConsumeInfoService
 
                 result.code = EResponseCode.Success;
                 result.data = true;
-                _logger.Debug($"SqlSugarConsumeInfoService.InsertAsync success with id:[{id}] goodsType:[{goodsType}]");
+                _logger.Debug($"SqlSugarConsumeInfoService.InsertAsync success with coupon:[{info.Coupon}] goodsType:[{goodsType}]");
+
+                await _channel.BasicPublishAsync(exchange: string.Empty,
+               routingKey: RabbitMQKeys.ConsumeInfoInserted,
+               true,
+               _rabbitMQMsgProps,
+              Encoding.UTF8.GetBytes(JsonSerializer.Serialize(info)));
 
             }
             catch (Exception ex)
             {
                 result.msg = ex.Message;
                 await _sqlClient.RollbackTranAsync();
-                _logger.Error($"while SqlSugarConsumeInfoService.InsertAsync with id:[{id}] goodsType:[{goodsType}]");
+                _logger.Error($"while SqlSugarConsumeInfoService.InsertAsync with coupon:[{info.Coupon}] goodsType:[{goodsType}]");
                 _logger.Error(ex.Message);
             }
 
