@@ -191,7 +191,8 @@ namespace ConsumeInfoService
 
                 await _sqlClient.BeginTranAsync();
                 int impactRows = await _sqlClient.Updateable(dto.ToEntity())
-                 .Where($"id='{dto.Id}'").ExecuteCommandAsync();
+                 .Where($"id='{dto.Id}'")
+                 .IgnoreColumns(it => new {it.coupon }).ExecuteCommandAsync();
                 await _sqlClient.CommitTranAsync();
                 if (impactRows != 1)
                     throw new Exception("SqlSugarConsumeInfoService.UpdateAsync impactRows not equal to 1");

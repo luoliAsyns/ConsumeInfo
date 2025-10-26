@@ -217,8 +217,7 @@ namespace ConsumeInfoService
 
             ServiceLocator.Initialize(app.Services);
 
-            ApiCaller.NotifyAsync($"{Config.ServiceName}.{Config.ServiceId} 启动了", NotifyUsers);
-
+           
             #region luoli code
 
             // 应用启动后，通过服务容器获取 LokiLogger 实例
@@ -241,6 +240,9 @@ namespace ConsumeInfoService
 
                     lokiLogger.Info($"CurrentDirectory:[{Environment.CurrentDirectory}]");
                     lokiLogger.Info($"Current File Version:[{fileVersion}]");
+
+                    ApiCaller.NotifyAsync($"{Config.ServiceName}.{Config.ServiceId} v{fileVersion} 启动了", NotifyUsers);
+
                 }
                 catch (Exception ex)
                 {
