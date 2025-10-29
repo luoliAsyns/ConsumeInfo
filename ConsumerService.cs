@@ -17,7 +17,7 @@ namespace CouponService
     {
         private readonly IChannel _channel;
         private readonly IServiceProvider _serviceProvider;
-        private readonly string _queueName =RabbitMQKeys.ConsumeInfoInserting; // 替换为你的队列名
+        private readonly string _queueName = Program.Config.KVPairs["StartWith"]+ RabbitMQKeys.ConsumeInfoInserting; // 替换为你的队列名
         private readonly LuoliCommon.Logger.ILogger _logger;
         private readonly AsynsApis _asynsApis;
 
@@ -61,6 +61,9 @@ namespace CouponService
 
                 try
                 {
+                    _logger.Info("ConsumeInfo.ConsumerService[For insert ConsumeInfoDTO into DB] received message");
+                    _logger.Debug(message);
+
                     var dto = JsonSerializer.Deserialize<ConsumeInfoDTO>(message);
                     // 使用ServiceProvider创建作用域，以便获取Controller实例
                     using (var scope = _serviceProvider.CreateScope())
@@ -72,6 +75,8 @@ namespace CouponService
 
                         if (resp.ok)
                         {
+                            _logger.Info($"ConsumeInfo.ConsumerService[For insert ConsumeInfoDTO into DB] success with ConsumeInfoDTO.Coupon[{dto.Coupon}]");
+
                             // 处理成功，确认消息
                             await _channel.BasicAckAsync(
                                 deliveryTag: ea.DeliveryTag,
@@ -80,9 +85,10 @@ namespace CouponService
                         }
                         else
                         {
-                            _logger.Error("while ConsumeInfo insert");
+                            // 处理失败，不重新入队
+                            _logger.Error($"ConsumeInfo.ConsumerService[For insert ConsumeInfoDTO into DB] failed with ConsumeInfoDTO.Coupon[{dto.Coupon}]");
                             _logger.Error(resp.msg);
-                            Notify(dto, $"ConsumeInfo insert failed, msg:[{resp.msg}]", ea.DeliveryTag, stoppingToken);
+                            Notify(dto, $"ConsumeInfo.ConsumerService ConsumeInfoDTO insert failed, msg:[{resp.msg}]", ea.DeliveryTag, stoppingToken);
                         }
                     }
                 }
@@ -105,6 +111,8 @@ MQ 消费过程中异常
 message:[{message}]", Program.NotifyUsers);
                 }
             };
+
+            _logger.Info($"ConsumeInfo.ConsumerService start listen MQ[{_queueName}]");
 
             // 开始消费
             await _channel.BasicConsumeAsync(

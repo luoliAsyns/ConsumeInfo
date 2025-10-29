@@ -190,6 +190,7 @@ namespace ConsumeInfoService
                 var redisKey = $"{dto.GoodsType}.{dto.Id}";
 
                 await _sqlClient.BeginTranAsync();
+             
                 int impactRows = await _sqlClient.Updateable(dto.ToEntity())
                  .Where($"id='{dto.Id}'")
                  .IgnoreColumns(it => new {it.coupon }).ExecuteCommandAsync();
@@ -228,7 +229,11 @@ namespace ConsumeInfoService
 
             try
             {
-                int impactRows = await _sqlClient.Insertable(info)
+                var entity = info.ToEntity();
+                entity.create_time = DateTime.Now;
+                entity.update_time = entity.create_time;
+
+                int impactRows = await _sqlClient.Insertable(entity)
                     .AS(goodsType)
                     .ExecuteCommandAsync();
 
@@ -240,10 +245,10 @@ namespace ConsumeInfoService
                 _logger.Debug($"SqlSugarConsumeInfoService.InsertAsync success with coupon:[{info.Coupon}] goodsType:[{goodsType}]");
 
                 await _channel.BasicPublishAsync(exchange: string.Empty,
-               routingKey: RabbitMQKeys.ConsumeInfoInserted,
-               true,
-               _rabbitMQMsgProps,
-              Encoding.UTF8.GetBytes(JsonSerializer.Serialize(info)));
+                   routingKey:Program.Config.KVPairs["StartWith"] + RabbitMQKeys.ConsumeInfoInserted,
+                   true,
+                   _rabbitMQMsgProps,
+                  Encoding.UTF8.GetBytes(JsonSerializer.Serialize(info)));
 
             }
             catch (Exception ex)

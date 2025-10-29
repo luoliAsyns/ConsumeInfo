@@ -201,22 +201,18 @@ namespace ConsumeInfoService
             #endregion
 
 
-            builder.Services.AddScoped<AsynsApis>(prov =>
+            builder.Services.AddSingleton<AsynsApis>(prov =>
             {
                 LuoliCommon.Logger.ILogger logger = prov.GetRequiredService<LuoliCommon.Logger.ILogger>();
-#if DEBUG
                 return new AsynsApis(logger, Config.KVPairs["AsynsApiUrl"]);
-#endif
-                return new AsynsApis(logger, string.Empty);
             });
-            builder.Services.AddHostedService<ConsumerService>();
 
+            builder.Services.AddHostedService<ConsumerService>();
 
 
             var app = builder.Build();
 
             ServiceLocator.Initialize(app.Services);
-
            
             #region luoli code
 
@@ -253,7 +249,6 @@ namespace ConsumeInfoService
 
 
             #endregion
-
 
             app.MapControllers();
 
