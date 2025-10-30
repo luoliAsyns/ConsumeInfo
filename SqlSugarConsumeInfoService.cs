@@ -229,6 +229,19 @@ namespace ConsumeInfoService
 
             try
             {
+                //coupon只能消费一次
+                var existedCoupon = await _sqlClient.Queryable<ConsumeInfoEntity>()
+                    .AS(goodsType)
+                    .Where(o=>o.coupon == info.Coupon && o.is_deleted == 0)
+                    .CountAsync();
+
+                if(existedCoupon >0)
+                {
+                    result.msg = "coupon existd in ConsumeInfo, so not insert current ConsumeInfoDTO";
+                    return result;
+                }
+
+
                 var entity = info.ToEntity();
                 entity.create_time = DateTime.Now;
                 entity.update_time = entity.create_time;
