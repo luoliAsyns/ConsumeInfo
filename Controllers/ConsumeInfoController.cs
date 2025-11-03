@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System.ServiceModel.Channels;
 using System.Text.Json;
+using ThirdApis.Services.Coupon;
 
 namespace ConsumeInfoService.Controllers
 {
@@ -16,11 +17,13 @@ namespace ConsumeInfoService.Controllers
     public class ConsumeInfoController : Controller
     {
         private readonly IConsumeInfoService _service;
+        private readonly ICouponRepository _couponRepository;
         private readonly LuoliCommon.Logger.ILogger _logger;
-        public ConsumeInfoController(IConsumeInfoService service, LuoliCommon.Logger.ILogger logger)
+        public ConsumeInfoController(IConsumeInfoService service, ICouponRepository couponRepository, LuoliCommon.Logger.ILogger logger)
         {
             _service = service;
             _logger = logger;
+            _couponRepository = couponRepository;
         }
 
         [Time]

@@ -1,7 +1,4 @@
-﻿using Azure.Core;
-using Dm.util;
-using Google.Protobuf.WellKnownTypes;
-using Grpc.Core;
+﻿
 using LuoliCommon.DTO.ConsumeInfo;
 using LuoliCommon.DTO.Coupon;
 using LuoliCommon.DTO.ExternalOrder;
@@ -18,6 +15,7 @@ using SqlSugar;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using ThirdApis.Services.Coupon;
 using static Azure.Core.HttpHeader;
 using Decoder = LuoliUtils.Decoder;
 using ILogger = LuoliCommon.Logger.ILogger;
@@ -31,15 +29,20 @@ namespace ConsumeInfoService
         private readonly ILogger _logger;
         private readonly SqlSugarClient _sqlClient;
         private readonly IChannel _channel;
-        
+
+        private readonly CouponRepository _couponRepository;
+
+
         private static  BasicProperties _rabbitMQMsgProps = new BasicProperties();
 
         // 构造函数注入
-        public SqlSugarConsumeInfoService(ILogger logger, SqlSugarClient sqlClient, IChannel channel)
+        public SqlSugarConsumeInfoService(ILogger logger, SqlSugarClient sqlClient, CouponRepository couponRepository, IChannel channel)
         {
             _logger = logger;
             _sqlClient = sqlClient;
             _channel = channel;
+
+            _couponRepository = couponRepository;
 
             _rabbitMQMsgProps.ContentType = "text/plain";
             _rabbitMQMsgProps.DeliveryMode = DeliveryModes.Persistent;
@@ -229,15 +232,28 @@ namespace ConsumeInfoService
 
             try
             {
+                RedisHelper.IncrByAsync(RedisKeys.Prom_ReceivedConsumeInfo);
+
+                var couponExist =await RedisHelper.SIsMemberAsync(RedisKeys.NotUsedCoupons, info.Coupon);
+                if (!couponExist)
+                {
+                    result.msg = $"coupon not existd in [{RedisKeys.NotUsedCoupons}] set";
+                    return result;
+                }
+
                 //coupon只能消费一次
                 var existedCoupon = await _sqlClient.Queryable<ConsumeInfoEntity>()
                     .AS(goodsType)
                     .Where(o=>o.coupon == info.Coupon && o.is_deleted == 0)
                     .CountAsync();
 
-                if(existedCoupon >0)
+                if(existedCoupon > 0)
                 {
                     result.msg = "coupon existd in ConsumeInfo, so not insert current ConsumeInfoDTO";
+                    await _couponRepository.UpdateErrorCode(new UpdateErrorCodeRequest() {
+                        Coupon = info.Coupon,
+                        ErrorCode = ECouponErrorCode.UsedCoupon
+                    });
                     return result;
                 }
 
@@ -252,6 +268,8 @@ namespace ConsumeInfoService
 
                 if (impactRows != 1)
                     throw new Exception("SqlSugarConsumeInfoService.InsertAsync impactRows not equal to 1");
+
+                RedisHelper.IncrByAsync(RedisKeys.Prom_InsertedConsumeInfo);
 
                 result.code = EResponseCode.Success;
                 result.data = true;
