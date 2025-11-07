@@ -30,13 +30,13 @@ namespace ConsumeInfoService
         private readonly SqlSugarClient _sqlClient;
         private readonly IChannel _channel;
 
-        private readonly CouponRepository _couponRepository;
+        private readonly ICouponRepository _couponRepository;
 
 
         private static  BasicProperties _rabbitMQMsgProps = new BasicProperties();
 
         // 构造函数注入
-        public SqlSugarConsumeInfoService(ILogger logger, SqlSugarClient sqlClient, CouponRepository couponRepository, IChannel channel)
+        public SqlSugarConsumeInfoService(ILogger logger, SqlSugarClient sqlClient, ICouponRepository couponRepository, IChannel channel)
         {
             _logger = logger;
             _sqlClient = sqlClient;
