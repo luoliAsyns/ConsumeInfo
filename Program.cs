@@ -15,6 +15,7 @@ using System.ServiceModel.Channels;
 using System.Text.Json;
 using ThirdApis;
 using ThirdApis.Services.Coupon;
+using ThirdApis.Services.ExternalOrder;
 using IChannel = RabbitMQ.Client.IChannel;
 
 namespace ConsumeInfoService
@@ -208,7 +209,8 @@ namespace ConsumeInfoService
                 LuoliCommon.Logger.ILogger logger = prov.GetRequiredService<LuoliCommon.Logger.ILogger>();
                 return new AsynsApis(logger, Config.KVPairs["AsynsApiUrl"]);
             });
-            builder.Services.AddScoped<CouponRepository>();
+            builder.Services.AddScoped<ICouponRepository, CouponRepository>();
+            builder.Services.AddScoped<IExternalOrderRepository, ExternalOrderRepository>();
 
 
             builder.Services.AddHostedService<ConsumerService>();
