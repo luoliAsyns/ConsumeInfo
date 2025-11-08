@@ -137,6 +137,7 @@ namespace ConsumeInfoService
 
         public async Task<ApiResponse<ConsumeInfoDTO>> GetAsync(string goodsType, long id)
         {
+            goodsType = goodsType.ToLower();
             _logger.Debug($"starting SqlSugarConsumeInfoService.GetAsync with id:[{id}] goodsType:[{goodsType}]");
             var result = new ApiResponse<ConsumeInfoDTO>();
             result.code = EResponseCode.Fail;
