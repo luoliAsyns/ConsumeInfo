@@ -52,6 +52,7 @@ namespace ConsumeInfoService.Controllers
         [HttpGet]
         public async Task<ApiResponse<ConsumeInfoDTO>> GetById([FromQuery] string goodsType, [FromQuery] long id)
         {
+            goodsType= goodsType.ToLower();
             var consumeInfo = await _service.GetAsync(goodsType, id); 
 
             return consumeInfo;
@@ -62,6 +63,7 @@ namespace ConsumeInfoService.Controllers
         [HttpGet]
         public async Task<ApiResponse<ConsumeInfoDTO>> GetByCoupon([FromQuery] string goodsType, [FromQuery] string coupon)
         {
+            goodsType = goodsType.ToLower();
             var consumeInfo = await _service.GetAsync(goodsType, coupon);
 
             return consumeInfo;
@@ -103,7 +105,7 @@ namespace ConsumeInfoService.Controllers
         [Route("api/consume-info/delete")]
         public async Task<ApiResponse<bool>> Delete([FromBody] DeleteRequest dr)
         {
-
+            dr.GoodsType = dr.GoodsType.ToLower();
             var resp = await _service.DeleteAsync(dr.GoodsType, dr.Id);
 
             return resp;
