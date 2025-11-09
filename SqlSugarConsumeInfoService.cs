@@ -251,10 +251,6 @@ namespace ConsumeInfoService
                 if(existedCoupon > 0)
                 {
                     result.msg = "coupon existd in ConsumeInfo, so not insert current ConsumeInfoDTO";
-                    await _couponRepository.UpdateErrorCode(new UpdateErrorCodeRequest() {
-                        Coupon = info.Coupon,
-                        ErrorCode = ECouponErrorCode.UsedCoupon
-                    });
                     return result;
                 }
 
