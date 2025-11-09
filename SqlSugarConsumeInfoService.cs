@@ -147,7 +147,7 @@ namespace ConsumeInfoService
 
             try
             {
-                var consumeInfoEntity = RedisHelper.Get<ConsumeInfoEntity>(redisKey);
+                var consumeInfoEntity =await RedisHelper.GetAsync<ConsumeInfoEntity>(redisKey);
 
                 if (!(consumeInfoEntity is null))
                 {
@@ -184,7 +184,7 @@ namespace ConsumeInfoService
 
         public async Task<ApiResponse<bool>> UpdateAsync(ConsumeInfoDTO dto)
         {
-            _logger.Debug($"starting SqlSugarConsumeInfoService.UpdateAsync with id:[{dto.Id}] goodsType:[{dto.GoodsType}]");
+            _logger.Debug($"starting SqlSugarConsumeInfoService.UpdateAsync with coupon:[{dto.Coupon}] goodsType:[{dto.GoodsType}]");
             var result = new ApiResponse<bool>();
             result.code = EResponseCode.Fail;
             result.data = false;
@@ -196,7 +196,7 @@ namespace ConsumeInfoService
                 await _sqlClient.BeginTranAsync();
              
                 int impactRows = await _sqlClient.Updateable(dto.ToEntity())
-                 .Where($"id='{dto.Id}'")
+                 .Where($"coupon='{dto.Coupon}'")
                  .IgnoreColumns(it => new {it.coupon }).ExecuteCommandAsync();
                 await _sqlClient.CommitTranAsync();
                 if (impactRows != 1)
@@ -205,15 +205,15 @@ namespace ConsumeInfoService
                 result.code = EResponseCode.Success;
                 result.data = true;
 
-                _logger.Debug($"SqlSugarConsumeInfoService.UpdateAsync success  with id:[{dto.Id}] goodsType:[{dto.GoodsType}]");
+                _logger.Debug($"SqlSugarConsumeInfoService.UpdateAsync success  with coupon:[{dto.Coupon}] goodsType:[{dto.GoodsType}]");
 
-                RedisHelper.DelAsync(redisKey);
+                await RedisHelper.DelAsync(redisKey);
             }
             catch (Exception ex)
             {
                 result.msg = ex.Message;
                 await _sqlClient.RollbackTranAsync();
-                _logger.Error($"while SqlSugarConsumeInfoService.UpdateAsync  with id:[{dto.Id}] goodsType:[{dto.GoodsType}]");
+                _logger.Error($"while SqlSugarConsumeInfoService.UpdateAsync  with coupon:[{dto.Coupon}]  goodsType:[{dto.GoodsType}]");
                 _logger.Error(ex.Message);
             }
 
