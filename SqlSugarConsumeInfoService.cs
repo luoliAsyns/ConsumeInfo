@@ -241,8 +241,8 @@ namespace ConsumeInfoService
             {
                 RedisHelper.IncrByAsync(RedisKeys.Prom_ReceivedConsumeInfo);
 
-                var couponExist =await RedisHelper.SIsMemberAsync(RedisKeys.NotUsedCoupons, info.Coupon);
-                if (!couponExist)
+                var couponExist = await RedisHelper.ZScoreAsync(RedisKeys.NotUsedCoupons, info.Coupon);
+                if (couponExist.HasValue)
                 {
                     result.msg = $"coupon not existd in [{RedisKeys.NotUsedCoupons}] set";
                     return result;
@@ -273,6 +273,8 @@ namespace ConsumeInfoService
                     throw new Exception("SqlSugarConsumeInfoService.InsertAsync impactRows not equal to 1");
 
                 RedisHelper.IncrByAsync(RedisKeys.Prom_InsertedConsumeInfo);
+
+                await RedisHelper.ZRemAsync(RedisKeys.NotUsedCoupons, info.Coupon);
 
                 result.code = EResponseCode.Success;
                 result.data = true;
