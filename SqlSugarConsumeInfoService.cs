@@ -99,7 +99,7 @@ namespace ConsumeInfoService
             try
             {
                 var redisKey = $"{goodsType}.{coupon}";
-                var consumeInfoEntity = RedisHelper.Get<ConsumeInfoEntity>(redisKey);
+                var consumeInfoEntity = await RedisHelper.GetAsync<ConsumeInfoEntity>(redisKey);
 
                 if(!(consumeInfoEntity is null))
                 {
@@ -120,9 +120,15 @@ namespace ConsumeInfoService
                 result.msg = "from database";
 
                 _logger.Debug($"SqlSugarConsumeInfoService.GetAsync success with coupon:[{coupon}] goodsType:[{goodsType}]");
-              
+
                 if (!(result.data is null))
-                    RedisHelper.SetAsync(redisKey, consumeInfoEntity, 60);
+                {
+                    int cacheStoreSec = await RedisHelper.GetAsync<int>(RedisKeys.CICacheStoreSec);
+                    if (cacheStoreSec <= 0)
+                        cacheStoreSec = 60;
+                    RedisHelper.SetAsync(redisKey, consumeInfoEntity, cacheStoreSec);
+
+                }
 
             }
             catch (Exception ex)
