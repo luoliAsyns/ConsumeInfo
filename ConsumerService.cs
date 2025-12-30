@@ -2,6 +2,7 @@
 using LuoliCommon.DTO.ConsumeInfo;
 using LuoliCommon.DTO.Coupon;
 using LuoliCommon.DTO.ExternalOrder;
+using LuoliCommon.Interfaces;
 using LuoliUtils;
 using Microsoft.AspNetCore.Mvc;
 using RabbitMQ.Client;
@@ -10,10 +11,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using ThirdApis;
-using ThirdApis.Services.Coupon;
-using ThirdApis.Services.ExternalOrder;
 
-namespace CouponService
+namespace ConsumeInfoService
 {
     public class ConsumerService : BackgroundService
     {
@@ -22,21 +21,15 @@ namespace CouponService
         private readonly string _queueName = Program.Config.KVPairs["StartWith"]+ RabbitMQKeys.ConsumeInfoInserting; // 替换为你的队列名
         private readonly LuoliCommon.Logger.ILogger _logger;
 
-        private readonly IExternalOrderRepository _externalOrderRepository;
-        private readonly ICouponRepository _couponRepository;
 
         public ConsumerService(IChannel channel,
              IServiceProvider serviceProvider,
-             LuoliCommon.Logger.ILogger logger,
-             IExternalOrderRepository externalOrderRepository,
-             ICouponRepository  couponRepository
+             LuoliCommon.Logger.ILogger logger
              )
         {
             _channel = channel;
             _logger = logger;
             _serviceProvider = serviceProvider;
-            _externalOrderRepository = externalOrderRepository;
-            _couponRepository = couponRepository;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -148,9 +141,21 @@ message:[{message}]", Program.NotifyUsers);
         {
             try
             {
-                CouponDTO coupon = (await _couponRepository.Query(ci.Coupon)).data;
-                ExternalOrderDTO externalOrder = (await _externalOrderRepository.Get(coupon.ExternalOrderFromPlatform, coupon.ExternalOrderTid)).data;
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    ICouponService couponService = scope.ServiceProvider.GetRequiredService<ICouponService>();
+                    IExternalOrderService eoService = scope.ServiceProvider.GetRequiredService<IExternalOrderService>();
 
+                    CouponDTO coupon = (await couponService.Query(ci.Coupon)).data;
+                    ExternalOrderDTO externalOrder = (await eoService.Get(coupon.ExternalOrderFromPlatform, coupon.ExternalOrderTid)).data;
+
+
+					Program.Notify(
+						coupon,
+						externalOrder,
+						coreMsg);
+
+				}
                 _channel.BasicNackAsync(
                           deliveryTag: tag,
                           multiple: false,
@@ -158,10 +163,6 @@ message:[{message}]", Program.NotifyUsers);
                           token);
 
 
-                Program.Notify(
-                    coupon,
-                    externalOrder,
-                    coreMsg);
             }
             catch (Exception ex)
             {

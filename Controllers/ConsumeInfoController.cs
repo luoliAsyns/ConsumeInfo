@@ -3,33 +3,33 @@ using LuoliCommon.DTO.ConsumeInfo;
 using LuoliCommon.DTO.Coupon;
 using LuoliCommon.Entities;
 using LuoliCommon.Enums;
+using LuoliCommon.Interfaces;
 using MethodTimer;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System.ServiceModel.Channels;
 using System.Text.Json;
-using ThirdApis.Services.Coupon;
 
 namespace ConsumeInfoService.Controllers
 {
 
 
-    public class ConsumeInfoController : Controller
+    public class ConsumeInfoController : Controller, IConsumeInfoService
     {
-        private readonly IConsumeInfoService _service;
-        private readonly ICouponRepository _couponRepository;
+        private readonly IConsumeInfoRepo _service;
+        private readonly ICouponService _couponService;
         private readonly LuoliCommon.Logger.ILogger _logger;
-        public ConsumeInfoController(IConsumeInfoService service, ICouponRepository couponRepository, LuoliCommon.Logger.ILogger logger)
+        public ConsumeInfoController(IConsumeInfoRepo service, ICouponService couponRepository, LuoliCommon.Logger.ILogger logger)
         {
             _service = service;
             _logger = logger;
-            _couponRepository = couponRepository;
+            _couponService = couponRepository;
         }
 
         [Time]
         [Route("api/consume-info/insert")]
         [HttpPost]
-        public async Task<ApiResponse<bool>> Insert([FromBody] ConsumeInfoDTO consumeInfo)
+        public async Task<ApiResponse<bool>> InsertAsync([FromBody] ConsumeInfoDTO consumeInfo)
         {
             _logger.Info($"trigger ConsumeInfoService.Controllers.Insert");
 
@@ -50,7 +50,7 @@ namespace ConsumeInfoService.Controllers
         [Time]
         [Route("api/consume-info/query-id")]
         [HttpGet]
-        public async Task<ApiResponse<ConsumeInfoDTO>> GetById([FromQuery] string goodsType, [FromQuery] long id)
+        public async Task<ApiResponse<ConsumeInfoDTO>> GetAsync([FromQuery] string goodsType, [FromQuery] long id)
         {
             goodsType= goodsType.ToLower();
             var consumeInfo = await _service.GetAsync(goodsType, id); 
@@ -61,7 +61,7 @@ namespace ConsumeInfoService.Controllers
         [Time]
         [Route("api/consume-info/query-coupon")]
         [HttpGet]
-        public async Task<ApiResponse<ConsumeInfoDTO>> GetByCoupon([FromQuery] string goodsType, [FromQuery] string coupon)
+        public async Task<ApiResponse<ConsumeInfoDTO>> GetAsync([FromQuery] string goodsType, [FromQuery] string coupon)
         {
             goodsType = goodsType.ToLower();
             var consumeInfo = await _service.GetAsync(goodsType, coupon);
@@ -72,7 +72,7 @@ namespace ConsumeInfoService.Controllers
         [Time]
         [HttpPost]
         [Route("api/consume-info/update")]
-        public async Task<ApiResponse<bool>> Update([FromBody] LuoliCommon.DTO.ConsumeInfo.UpdateRequest ur)
+        public async Task<ApiResponse<bool>> UpdateAsync([FromBody] LuoliCommon.DTO.ConsumeInfo.UpdateRequest ur)
         {
             ApiResponse<bool> response = new();
             response.code = EResponseCode.Fail;
@@ -97,13 +97,10 @@ namespace ConsumeInfoService.Controllers
         }
 
 
-
-
-
         [Time]
         [HttpPost]
         [Route("api/consume-info/delete")]
-        public async Task<ApiResponse<bool>> Delete([FromBody] DeleteRequest dr)
+        public async Task<ApiResponse<bool>> DeleteAsync([FromBody] DeleteRequest dr)
         {
             dr.GoodsType = dr.GoodsType.ToLower();
             var resp = await _service.DeleteAsync(dr.GoodsType, dr.Id);

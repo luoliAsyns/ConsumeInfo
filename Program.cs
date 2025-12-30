@@ -1,21 +1,20 @@
-using CouponService;
 using LuoliCommon;
 using LuoliCommon.DTO.Coupon;
 using LuoliCommon.DTO.ExternalOrder;
 using LuoliCommon.Enums;
+using LuoliCommon.Interfaces;
 using LuoliCommon.Logger;
 using LuoliHelper.Utils;
 using LuoliUtils;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using RabbitMQ.Client;
+using Refit;
 using SqlSugar;
 using System.Reflection;
 using System.ServiceModel.Channels;
 using System.Text.Json;
 using ThirdApis;
-using ThirdApis.Services.Coupon;
-using ThirdApis.Services.ExternalOrder;
 using IChannel = RabbitMQ.Client.IChannel;
 
 namespace ConsumeInfoService
@@ -192,26 +191,29 @@ namespace ConsumeInfoService
             });
 
 
-            #endregion
+			#endregion
 
-            #region 注册 IConsumeInfoService
+			#region 注册 IConsumeInfoRepo
 
-            builder.Services.AddScoped<IConsumeInfoService, SqlSugarConsumeInfoService>();
+			builder.Services.AddScoped<IConsumeInfoRepo, SqlSugarConsumeInfoRepo>();
 
-
-            #endregion
-
-
-            builder.Services.AddSingleton<AsynsApis>(prov =>
-            {
-                LuoliCommon.Logger.ILogger logger = prov.GetRequiredService<LuoliCommon.Logger.ILogger>();
-                return new AsynsApis(logger, Config.KVPairs["AsynsApiUrl"]);
-            });
-            builder.Services.AddScoped<ICouponRepository, CouponRepository>();
-            builder.Services.AddScoped<IExternalOrderRepository, ExternalOrderRepository>();
+			#endregion
 
 
-            builder.Services.AddHostedService<ConsumerService>();
+			#region 注册 Refit部分   4个带数据库的服务
+
+			builder.Services.AddRefitClient<IExternalOrderService>()
+				.ConfigureHttpClient(c => c.BaseAddress = new Uri($"http://{Config.KVPairs["StartWith"]}external-order-service:8080"));
+			builder.Services.AddRefitClient<ICouponService>()
+				.ConfigureHttpClient(c => c.BaseAddress = new Uri($"http://{Config.KVPairs["StartWith"]}coupon-service:8080"));
+			//builder.Services.AddRefitClient<IConsumeInfoService>()
+			//	.ConfigureHttpClient(c => c.BaseAddress = new Uri($"http://{Config.KVPairs["StartWith"]}consume-info-service:8080"));
+			builder.Services.AddRefitClient<IUserService>()
+				.ConfigureHttpClient(c => c.BaseAddress = new Uri($"http://{Config.KVPairs["StartWith"]}user-service:8080"));
+
+			#endregion
+
+			builder.Services.AddHostedService<ConsumerService>();
 
 
             var app = builder.Build();

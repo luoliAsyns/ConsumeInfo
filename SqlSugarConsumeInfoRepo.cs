@@ -4,6 +4,7 @@ using LuoliCommon.DTO.Coupon;
 using LuoliCommon.DTO.ExternalOrder;
 using LuoliCommon.Entities;
 using LuoliCommon.Enums;
+using LuoliCommon.Interfaces;
 using LuoliCommon.Logger;
 using LuoliDatabase;
 using LuoliDatabase.Entities;
@@ -15,7 +16,6 @@ using SqlSugar;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using ThirdApis.Services.Coupon;
 using static Azure.Core.HttpHeader;
 using Decoder = LuoliUtils.Decoder;
 using ILogger = LuoliCommon.Logger.ILogger;
@@ -23,33 +23,33 @@ using ILogger = LuoliCommon.Logger.ILogger;
 namespace ConsumeInfoService
 {
     // 实现服务接口
-    public class SqlSugarConsumeInfoService : IConsumeInfoService
+    public class SqlSugarConsumeInfoRepo : IConsumeInfoRepo
     {
         // 注入的依赖项
         private readonly ILogger _logger;
         private readonly SqlSugarClient _sqlClient;
         private readonly IChannel _channel;
 
-        private readonly ICouponRepository _couponRepository;
+        private readonly ICouponService _couponService;
 
 
         private static  BasicProperties _rabbitMQMsgProps = new BasicProperties();
 
         // 构造函数注入
-        public SqlSugarConsumeInfoService(ILogger logger, SqlSugarClient sqlClient, ICouponRepository couponRepository, IChannel channel)
+        public SqlSugarConsumeInfoRepo(ILogger logger, SqlSugarClient sqlClient, ICouponService couponService, IChannel channel)
         {
             _logger = logger;
             _sqlClient = sqlClient;
             _channel = channel;
 
-            _couponRepository = couponRepository;
+            _couponService = couponService;
 
             _rabbitMQMsgProps.ContentType = "text/plain";
             _rabbitMQMsgProps.DeliveryMode = DeliveryModes.Persistent;
         }
 
 
-        public async Task<ApiResponse<bool>> DeleteAsync(string goodsType, long id)
+        public async Task<ApiResponse<bool>> DeleteAsync(string goodsType, int id)
         {
             _logger.Debug($"starting SqlSugarConsumeInfoService.DeleteAsync with id:[{id}] goodsType:[{goodsType}]");
 
@@ -300,6 +300,6 @@ namespace ConsumeInfoService
 
         }
 
-      
+     
     }
 }
