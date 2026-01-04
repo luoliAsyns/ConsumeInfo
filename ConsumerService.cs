@@ -68,9 +68,9 @@ namespace ConsumeInfoService
                     using (var scope = _serviceProvider.CreateScope())
                     {
                         // 获取你的Controller实例
-                        IConsumeInfoService cis = scope.ServiceProvider.GetRequiredService<IConsumeInfoService>();
+                        IConsumeInfoRepo ciRepo = scope.ServiceProvider.GetRequiredService<IConsumeInfoRepo>();
 
-                        var resp = await cis.InsertAsync(dto);
+                        var resp = await ciRepo.InsertAsync(dto);
 
                         if (resp.ok)
                         {
