@@ -242,7 +242,7 @@ namespace ConsumeInfoService
                 RedisHelper.IncrByAsync(RedisKeys.Prom_ReceivedConsumeInfo);
 
                 var couponExist = await RedisHelper.ZScoreAsync(RedisKeys.NotUsedCoupons, info.Coupon);
-                if (couponExist.HasValue)
+                if (!couponExist.HasValue)
                 {
                     result.msg = $"coupon not existd in [{RedisKeys.NotUsedCoupons}] set";
                     return result;
